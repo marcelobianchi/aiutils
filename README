@@ -1,0 +1,78 @@
+aiUtils package
+===============
+
+aiUtils package offer a set of tools to work and validate seismological metadata
+information (stations lists and instruments) in XML format as produced by an ArcLink 
+server or dumped from a Seiscomp3 system with the command dump_db.
+
+It depends on a subset of libraries provided by the seiscomp3 package.
+
+distribution
+============
+
+The initial package was developed and is distributed by the GEOFON data center
+(part of the GeoForschungZentrum Germany) as it is. The code can be fetched
+using the bazaar (http://bazaar.canonical.com/en/) tool from our webpage.
+
+URL: http://geofon.gfz-potsdam.de/software/bzr/aiUtils/
+
+about bzr
+=========
+
+Bazaar is s distributed version control system that does not need a server.
+It is included on major Linux distributions. Please use your distribution package
+manager to install it.
+
+opensuse:
+	zypper install bzr
+
+debian/ubuntu:
+	apt-get install bzr
+
+install
+=======
+
+Installing and Updating the code to the last release can be done with the bazaar
+tool (see above) and the associated helper script.
+
+Change to a desired folder for installing it, i.e. /usr/local
+
+% cd /usr/local
+
+Make a branch from our webserver
+
+% bzr branch http://geofon.gfz-potsdam.de/software/bzr/aiUtils/
+
+Enter the created folder
+
+% cd aiUtils
+
+Run the install.sh script
+
+% ./install.sh
+
+updating to a new version
+=========================
+
+Go to the location where it was installed 
+
+% cd /usr/local/aiUtils/
+
+Run bazaar asking to update your branch
+
+% bzr pull http://geofon.gfz-potsdam.de/software/bzr/aiUtils/
+
+Run the install script again
+
+% ./install.sh
+
+contributing
+============
+
+if you want to contribute or have suggestions to improve this code please let us know.
+
+Authors/Maintainers
+===================
+
+Marcelo Bianchi <mbianchi@gfz-potsdam.de>
+Peter Evans <pevans@gfz-potsdam.de>
