@@ -10,11 +10,19 @@ It depends on a subset of libraries provided by the seiscomp3 package.
 distribution
 ============
 
-The initial package was developed and is distributed by the GEOFON data center
-(part of the GeoForschungZentrum Germany) as it is. The code can be fetched
-using the bazaar (http://bazaar.canonical.com/en/) tool from our webpage.
+The initial package was developed and is distributed by the launchpad
+webpage. The code can be fetched using the bazaar (http://bazaar.canonical.com/en/)
+ application from the project page.
 
-URL: http://geofon.gfz-potsdam.de/software/bzr/aiUtils/
+Project page: https://launchpad.net/aiutils
+
+for getting a copy of the tool just use bazar:
+
+% bzr branch lp:aiutils
+
+for updating your copy to the latest just do:
+
+% bzr pull
 
 about bzr
 =========
@@ -41,7 +49,7 @@ Change to a desired folder for installing it, i.e. /usr/local
 
 Make a branch from our webserver
 
-% bzr branch http://geofon.gfz-potsdam.de/software/bzr/aiUtils/
+% bzr branch lp:aiutils
 
 Enter the created folder
 
@@ -60,7 +68,7 @@ Go to the location where it was installed
 
 Run bazaar asking to update your branch
 
-% bzr pull http://geofon.gfz-potsdam.de/software/bzr/aiUtils/
+% bzr pull
 
 Run the install script again
 
