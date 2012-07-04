@@ -159,8 +159,18 @@ class gain(base):
                         if not self._match(self.name(ncode, scode, lcode, ccode), cha.start, cha.end): continue
                         logs.notice("[C] %-15s %g" % (self.name(ncode, scode, lcode, ccode), cha.gain))
 
+def loadData(args):
+    inv = GInventory()
+    try:
+        for filename in args:
+            logs.notice("Loading %s" % filename)
+            load_xml(filename, inv)
+    except Exception,e:
+        logs.error(str(e))
+    return inv
+
 if __name__ == "__main__":
-    parser = OptionParser(usage="ai2Table  <-c|-g|-t|-sg> [--filter  <channel pattern>] [--when <date>] <file 1> [file 2] ... [file n] ", version="0.1", add_help_option=True)
+    parser = OptionParser(usage="ai2Table  <-c|-g|-t|-sg> [--filter  <channel pattern>] [--when <date>] <file 1> [file 2] ... [file n] ", version="0.1.5", add_help_option=True)
 
     ## Modes
     parser.add_option("-c", "--coordinates", action="store_true", help="Coordinates table", dest="c", default=False)
@@ -179,15 +189,6 @@ if __name__ == "__main__":
         logs.error("You should supply at least one file to check")
         sys.exit()
  
-    try:
-        inv = GInventory()
-        for filename in args:
-            logs.notice("Loading %s" % filename)
-            load_xml(filename, inv)
-    except Exception,e:
-        logs.error(str(e))
-        sys.exit()
-
     filter = None
     when = None
     module = None
@@ -217,4 +218,6 @@ if __name__ == "__main__":
         logs.error(str(e))
         sys.exit()
 
+    inv = loadData(args)
     module.run(inv)
+

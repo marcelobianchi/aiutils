@@ -33,7 +33,7 @@ from ai.utils import load_xml
 from ai.validator import Validator
 
 if __name__ == "__main__":
-    parser = OptionParser(usage="aiValidate [-p 0-4] <file 1> [file 2] ... [file n] ", version="0.1", add_help_option=True)
+    parser = OptionParser(usage="aiValidate [-p 0-4] <file 1> [file 2] ... [file n] ", version="0.1.5", add_help_option=True)
     parser.add_option("-p", "--phase", type="int", help="Choose the phase to check (1 == Structure/ 2=Instruments / 3=Stream-Instrument relation / 4=Gain [disabled by default])", dest="phase", default=None)
 
     # Parsing & Error check
@@ -42,7 +42,12 @@ if __name__ == "__main__":
     if len(args) < 1:
         logs.error("You should supply at least one file to check")
         sys.exit()
-    
+
+    if options.phase:
+        if options.phase < 1 or options.phase > 4:
+            logs.error("Phase should be between 1-4")
+            sys.exit()
+
     try:
 
         ## Get the validator
