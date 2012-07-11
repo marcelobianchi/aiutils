@@ -24,11 +24,11 @@ fixSc3() {
 
 	if [ -e "$BASE/seiscomp" ]; then
 		if [ ! -e $BASE/seiscomp/db/generic ]; then
-			echo "Current link is invalid."
+			echo "Current seiscomp support files/link is invalid."
 			echo "Remove it or adjust it to a valid location."
 			return 1
 		fi
-		echo "Link already exists" && return 0
+		echo "Current seiscomp support files/link already exists" && return 0
 	fi
 
 	if [ -d "$where/seiscomp3/lib/python/seiscomp" ];then
@@ -36,13 +36,26 @@ fixSc3() {
 		ln -s $where/seiscomp3/lib/python/seiscomp $BASE/
 		return 0
 	else
-		echo "Could not find the seiscomp python folder"
-		echo "Make sure that you have seiscomp3 installed at your home folder or link it from the"
-		echo "\${SEISCOMP_ROOT}/lib/python/seiscomp -> seiscomp on the aiUtils folder"
 		echo ""
-		echo "Installation will abort"
-		return 1
+		echo "Could not find the seiscomp python libraries folder."
+		echo "Make sure that you have seiscomp3 installed at your home folder or link it from the"
+		echo "\${SEISCOMP_ROOT}/lib/python/seiscomp -> seiscomp on the aiUtils folder."
+		echo ""
+		echo "Or if you want, I could also download the necessary files for you."
+		ans="Z"
+		while [ "$ans" != "N" -a "$ans" != "Y" ]; do
+			read -p "Should I do it [y/n]? " ans
+			ans=$(echo $ans | tr "[:lower:]" "[:upper:]" | cut -c1)
+			if [ "$ans" == "Y" ]; then
+				bzr branch lp:~m-tchelo/+junk/seiscomp
+				return 0
+			fi
+		done
 	fi
+
+
+	echo "Installation will abort"
+	return 1
 }
 
 addWrapper(){
