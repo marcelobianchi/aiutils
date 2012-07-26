@@ -285,29 +285,41 @@ class Validator(object):
                         if cha.sensor: ss.append(cha.sensor)
                         if cha.datalogger: dt.append(cha.datalogger)
 
+        #### Check that every sensor/datalogger is used
+        ##
+                
         ## Sensor
         sref = []
         for (name, sensor) in iv.sensor.items():
+            if sensor.response not in sref: sref.append(sensor.response)
             if sensor.publicID in ss:
-                sref.append(sensor.response)
                 continue
             self.collectInstrument(sensor, "[2] Sensor is not used")
 
         ## Dataloger
         dref = []
         for (name,datalogger) in iv.datalogger.items():
+            for (srn, lsrn) in datalogger.decimation.items():
+                for (srd, decimation) in lsrn.items():
+                    if decimation.analogueFilterChain:
+                        dref.extend(decimation.analogueFilterChain.split(" "))
+                    if decimation.digitalFilterChain:
+                        dref.extend(decimation.digitalFilterChain.split(" "))
+                    if not decimation.digitalFilterChain and not decimation.analogueFilterChain:
+                        self.collectInstrument(datalogger, "[2] Datalogger has no filters defined for decimation %s/%s." % (srn,srd))
+            if not datalogger.decimation:
+                self.collectInstrument(datalogger, "[2] Datalogger has no decimation stages.")
             if datalogger.publicID in dt:
-                for (srn, lsrn) in datalogger.decimation.items():
-                    for (srd, decimation) in lsrn.items():
-                        if decimation.analogueFilterChain:
-                            dref.extend(decimation.analogueFilterChain.split(" "))
-                        if decimation.digitalFilterChain:
-                            dref.extend(decimation.digitalFilterChain.split(" "))
                 continue
             self.collectInstrument(datalogger, "[2] Datalogger is not used")
 
+        #### Check that every filter is used
+        ##
+        fref = {}
+
         ## Paz
         for (name, rpaz) in iv.responsePAZ.items():
+            if rpaz.publicID not in fref: fref[rpaz.publicID] = rpaz
             if rpaz.publicID in sref:
                 continue
             if rpaz.publicID in dref:
@@ -316,18 +328,38 @@ class Validator(object):
 
         ## Polynomial
         for (name, rpol) in iv.responsePolynomial.items():
+            if rpol.publicID not in fref: fref[rpol.publicID] = rpol            
             if rpol.publicID in sref:
                 continue
-            self.collectInstrument(rpol, "[2] Polinomial response is not used")
+            self.collectInstrument(rpol, "[2] Polynomial response is not used")
 
         ## Fir
         for (name, rfir) in iv.responseFIR.items():
+            if rfir.publicID not in fref: fref[rfir.publicID] = rfir
             if rfir.publicID in dref:
                 continue
             self.collectInstrument(rfir, "[2] Fir-filter is not used")
 
+        #### Check that every filter can be resolved
+        ##
+        for (name, sensor) in iv.sensor.items():
+            if sensor.response not in fref:
+                self.collectInstrument(sensor, ("[2] Cannot find filter %s for sensor" % sensor.response))
+
+        for (name,datalogger) in iv.datalogger.items():
+            for (srn, lsrn) in datalogger.decimation.items():
+                for (srd, decimation) in lsrn.items():
+                    if decimation.analogueFilterChain:
+                        for decimationId in decimation.analogueFilterChain.split(" "):
+                            if decimationId not in fref:
+                                 self.collectInstrument(sensor, ("[2] Cannot find filter %s for datalogger" % decimationId))
+                    if decimation.digitalFilterChain:
+                        for decimationId in decimation.digitalFilterChain.split(" "):
+                            if decimationId not in fref:
+                                 self.collectInstrument(sensor, ("[2] Cannot find filter %s for datalogger" % decimationId))
+
     def pass3(self, iv):
-        logs.notice("[Phase 3] Checking instruments references")
+        logs.notice("[Phase 3] Checking instruments references from channel")
 
         ## Sensor
         sref = []
