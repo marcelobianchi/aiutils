@@ -61,7 +61,7 @@ if __name__ == "__main__":
             load_xml(filename, _inventory)
 
         ## Check
-        _validator.check(_inventory, options.phase)
+        _validator.check(_inventory, None, options.phase)
 
         ## Print results
         _validator.printer()
