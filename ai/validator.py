@@ -78,11 +78,12 @@ class Validator(object):
         node["messages"].append(message)
 
     def collectInstrument(self, obj, message):
+        id = obj.name if obj.name else obj.publicID
         try:
-            node = self.p[obj.name] 
+            node = self.p[id] 
         except:
             node = []
-            self.p[obj.name] = node
+            self.p[id] = node
         node.append(message)
 
     def _findFilter(self, iv, pid):
@@ -222,18 +223,23 @@ class Validator(object):
                     logs.warning("%s: %s" % (k,m))
 
     def pass0(self, iv):
+        for (name,datalogger) in iv.datalogger.items():
+            if not name:
+                self.collectInstrument(datalogger, "[0] Invalid datalogger Name for object with PID '%s'" % str(datalogger.publicID))
+        
         for (ncode, nstart, net) in unWrapNSLC(iv.network):
-            if not ncode: self.collectNSLC(net, None, None, None, "[1] network has no code")
-            if not nstart: self.collectNSLC(net, None, None, None, "[1] network has no start time") 
+            if not ncode: self.collectNSLC(net, None, None, None, "[0] network has no code")
+            if not nstart: self.collectNSLC(net, None, None, None, "[0] network has no start time") 
             for (scode, sstart, sta) in unWrapNSLC(net.station):
-                if not scode: self.collectNSLC(net, sta, None, None, "[1] Station has no code")
-                if not sstart: self.collectNSLC(net, sta, None, None, "[1] Station has no start time")
+                if not scode: self.collectNSLC(net, sta, None, None, "[0] Station has no code")
+                if not sstart: self.collectNSLC(net, sta, None, None, "[0] Station has no start time")
                 for (lcode, lstart, loc) in unWrapNSLC(sta.sensorLocation):
-                    if lcode is None: self.collectNSLC(net, sta, loc, None, "[1] Location has no code")
-                    if not lstart: self.collectNSLC(net, sta, loc, None, "[1] Location has no start time")
+                    if lcode is None: self.collectNSLC(net, sta, loc, None, "[0] Location has no code")
+                    if not lstart: self.collectNSLC(net, sta, loc, None, "[0] Location has no start time")
                     for (ccode, cstart, cha) in unWrapNSLC(loc.stream):
-                        if not ccode: self.collectNSLC(net, sta, loc, cha, "[1] Stream has no code")
-                        if not cstart: self.collectNSLC(net, sta, loc, cha, "[1] Stream has no start time")
+                        if not ccode: self.collectNSLC(net, sta, loc, cha, "[0] Stream has no code")
+                        if not cstart: self.collectNSLC(net, sta, loc, cha, "[0] Stream has no start time")
+
         return
 
     def pass1(self, iv):
