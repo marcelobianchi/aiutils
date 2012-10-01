@@ -221,6 +221,21 @@ class Validator(object):
                 for m in ms:
                     logs.warning("%s: %s" % (k,m))
 
+    def pass0(self, iv):
+        for (ncode, nstart, net) in unWrapNSLC(iv.network):
+            if not ncode: self.collectNSLC(net, None, None, None, "[1] network has no code")
+            if not nstart: self.collectNSLC(net, None, None, None, "[1] network has no start time") 
+            for (scode, sstart, sta) in unWrapNSLC(net.station):
+                if not scode: self.collectNSLC(net, sta, None, None, "[1] Station has no code")
+                if not sstart: self.collectNSLC(net, sta, None, None, "[1] Station has no start time")
+                for (lcode, lstart, loc) in unWrapNSLC(sta.sensorLocation):
+                    if lcode is None: self.collectNSLC(net, sta, loc, None, "[1] Location has no code")
+                    if not lstart: self.collectNSLC(net, sta, loc, None, "[1] Location has no start time")
+                    for (ccode, cstart, cha) in unWrapNSLC(loc.stream):
+                        if not ccode: self.collectNSLC(net, sta, loc, cha, "[1] Stream has no code")
+                        if not cstart: self.collectNSLC(net, sta, loc, cha, "[1] Stream has no start time")
+        return
+
     def pass1(self, iv):
         logs.notice("[Phase 1] Checking NSLC structure")
         ## Network
@@ -363,7 +378,7 @@ class Validator(object):
                                  self.collectInstrument(sensor, ("[2] Cannot find filter %s for datalogger" % decimationId))
 
     def pass3(self, iv):
-        logs.notice("[Phase 3] Checking instruments references from channel")
+        logs.notice("[Phase 3] Checking instruments references from channel & channel/location coordinates consistency")
 
         ## Sensor
         sref = []
@@ -377,7 +392,37 @@ class Validator(object):
 
         for (ncode, nstart, net) in unWrapNSLC(iv.network):
             for (scode, sstart, sta) in unWrapNSLC(net.station):
+                try:
+                    float(sta.latitude)
+                except Exception, e:
+                    self.collectNSLC(net, sta, None, None, "[3] Station has invalid Latitude '%s'" % sta.latitude)
+
+                try:
+                    float(sta.longitude)
+                except Exception, e:
+                    self.collectNSLC(net, sta, None, None, "[3] Station has invalid Longitude '%s'" % sta.longitude)
+
+                try:
+                    float(sta.latitude)
+                except Exception, e:
+                    self.collectNSLC(net, sta, None, None, "[3] Station has invalid Elevation '%s'" % sta.elevation)
+
                 for (lcode, lstart, loc) in unWrapNSLC(sta.sensorLocation):
+                    try:
+                        float(loc.latitude)
+                    except Exception, e:
+                        self.collectNSLC(net, sta, loc, None, "[3] Location has invalid Latitude '%s'" % loc.latitude)
+
+                    try:
+                        float(loc.longitude)
+                    except Exception, e:
+                        self.collectNSLC(net, sta, loc, None, "[3] Location has invalid Longitude '%s'" % loc.longitude)
+
+                    try:
+                        float(loc.latitude)
+                    except Exception, e:
+                        self.collectNSLC(net, sta, loc, None, "[3] Location has invalid Elevation '%s'" % loc.elevation)
+
                     for (ccode, cstart, cha) in unWrapNSLC(loc.stream):
                         if cha.sensor:
                             if cha.sensor not in sref:
@@ -390,6 +435,49 @@ class Validator(object):
                                 self.collectNSLC(net, sta, loc, cha, "[3] Undefined datalogger %s" % cha.datalogger)
                         else:
                             self.collectNSLC(net, sta, loc, cha, "[3] Has no datalogger defined")
+
+                        try:
+                            float(cha.depth)
+                        except Exception, e:
+                            self.collectNSLC(net, sta, loc, cha, "[3] Stream has invalid Depth '%s'" % cha.depth)
+
+                        try:
+                            int(cha.sampleRateNumerator)
+                        except Exception, e:
+                            self.collectNSLC(net, sta, loc, cha, "[3] Stream has invalid SampleRateNumerator '%s'" % cha.sampleRateNumerator)
+
+                        try:
+                            int(cha.sampleRateDenominator)
+                        except Exception, e:
+                            self.collectNSLC(net, sta, loc, cha, "[3] Stream has invalid SampleRateNumerator '%s'" % cha.sampleRateDenominator)
+
+                        try:
+                            float(cha.gain)
+                        except Exception, e:
+                            self.collectNSLC(net, sta, loc, cha, "[3] Stream has invalid Gain '%s'" % cha.gain)
+
+                        try:
+                            float(cha.gainFrequency)
+                        except Exception, e:
+                            self.collectNSLC(net, sta, loc, cha, "[3] Stream has invalid GainFrequency '%s'" % cha.gainFrequency)
+
+                        try:
+                            if not cha.gainUnit: raise Exception("");
+                        except Exception, e:
+                            self.collectNSLC(net, sta, loc, cha, "[3] Stream has invalid GainUnit '%s'" % cha.gainUnit)
+
+                        try:
+                            badDip = False
+                            int(cha.dip)
+                        except Exception, e:
+                            badDip = True
+                            self.collectNSLC(net, sta, loc, cha, "[3] Stream has invalid Dip '%s'" % cha.dip)
+
+                        try:
+                            int(cha.azimuth)
+                        except Exception, e:
+                            if badDip is False and cha.dip != 0.0:
+                                self.collectNSLC(net, sta, loc, cha, "[3] Stream has invalid Azimuth '%s'" % cha.azimuth)
 
     def pass4(self, iv):
         logs.warning("[Phase 4] Checking instruments gains at the flat-band [Accuracy == %s %%]" % (self.accuracy))
@@ -415,6 +503,12 @@ class Validator(object):
     def check(self, iv, rtn = None, phase = None):
         if phase is not None and (phase > 4 or phase < 1):
             raise Exception("Invalid phase %s to check (1 - 4)" % phase)
+
+        self.pass0(iv)
+        if self.m:
+            logs.error('Invalid Inventory -- Aborting !')
+            return
+        
         if not phase or phase == 1: self.pass1(iv)
         if not phase or phase == 2: self.pass2(iv)
         if not phase or phase == 3: self.pass3(iv)
