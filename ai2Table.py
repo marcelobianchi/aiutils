@@ -124,25 +124,40 @@ class coordinate(base):
                         logs.notice("[L] %-15s %f %f %f" % (self.name(ncode, scode, lcode), loc.longitude, loc.latitude, loc.elevation))
 
 class tree(base):
-    def __init__(self, filter = None, when = None):
+    def __init__(self, filter = None, when = None, mode = "Pretty"):
         base.__init__(self, filter, when)
+        if mode == "Pretty" or mode == "Diff":
+            self.mode = mode
+        else:
+            raise Exception("Invalid Printing mode")
         
     def run(self, inv):
         for (ncode, nstart, net) in unWrapNSLC(inv.network):
             if not self._match(self.name(ncode), net.start, net.end): continue
-            logs.notice("%s,%s/%s" % (ncode,net.start, net.end))
+            if self.mode == "Pretty":
+                logs.notice("%s,%s/%s" %(ncode,net.start, net.end))
 
             for (scode, sstart, sta) in unWrapNSLC(net.station):
                 if not self._match(self.name(ncode, scode), sta.start, sta.end): continue
-                logs.notice("  %s,%s/%s" % (scode,sta.start, sta.end))
-
+                if self.mode == "Pretty":
+                    logs.notice("  %s,%s/%s" % (scode,sta.start, sta.end))
+    
                 for (lcode, lstart, loc) in unWrapNSLC(sta.sensorLocation):
                     if not self._match(self.name(ncode, scode, lcode), loc.start, loc.end): continue
-                    logs.notice("       %s,%s/%s" % (lcode if lcode != "" else "--",loc.start, loc.end))
+                    if self.mode == "Pretty":
+                        logs.notice("       %s,%s/%s" % (lcode if lcode != "" else "--",loc.start, loc.end))
 
                     for (ccode, cstart, cha) in unWrapNSLC(loc.stream):
                         if not self._match(self.name(ncode, scode, lcode, ccode), cha.start, cha.end): continue
-                        logs.notice("         %s,%s/%s" % (ccode, cha.start, cha.end))
+                        if self.mode == "Diff":
+                            logs.notice("%s,%s/%s :: %s,%s/%s :: %s,%s/%s :: %s,%s/%s" % (ncode,net.start, net.end,
+                                                               scode,sta.start, sta.end,
+                                                               lcode if lcode != "" else "--",loc.start, loc.end,
+                                                               ccode, cha.start, cha.end))
+                        elif self.mode == "Pretty":
+                            logs.notice("         %s,%s/%s" % (ccode, cha.start, cha.end))
+                        else:
+                            raise Exception("Invalid printing mode.")
 
 class gain(base):
     def __init__(self, filter = None, when = None):
@@ -181,6 +196,7 @@ if __name__ == "__main__":
     ## Options
     parser.add_option("-f", "--filter", type="string", help="String to filter the node elements [Network.Station.Location.Stream. Empty locations should be represented as '--', '*/?' are used as wildcards]", dest="filter", default=False)
     parser.add_option("-w", "--when", type="string", help="Time to extract the desired information iso format (2012-12-31T14:10:59)", dest="when", default=False)
+    parser.add_option("-m", "--mode", type="string", help="Default printing mode for tree output (Pretty, Diff)", dest="mode", default="Pretty")
 
     # Parsing & Error check
     (options, args) = parser.parse_args()
@@ -209,7 +225,7 @@ if __name__ == "__main__":
         elif options.g:
             module = gain(filter, when)
         elif options.t:
-            module = tree(filter, when)
+            module = tree(filter, when, options.mode)
         elif options.sg:
             raise Exception("Not yet implemented")
         else:
