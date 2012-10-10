@@ -14,15 +14,20 @@ The initial package was developed and is distributed by the launchpad
 webpage. The code can be fetched using the bazaar (http://bazaar.canonical.com/en/)
  application from the project page.
 
-Project page: https://launchpad.net/aiutils
+Currently some revisions (more stable) of the code are also host at the GEOFON 
+webpage and distributed as compressed volumes at:
 
-for getting a copy of the tool just use bazar:
+http://geofon.gfz-potsdam.de/software/aiutils/
+
+If you want to fetch the code from the launchpad project page (https://launchpad.net/aiutils) 
+you will need the bazaar tool. For getting a copy of the tool just use bazaar:
 
 % bzr branch lp:aiutils
 
 for updating your copy to the latest just do:
 
 % bzr pull
+
 
 about bzr
 =========
