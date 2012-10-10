@@ -185,7 +185,7 @@ def loadData(args):
     return inv
 
 if __name__ == "__main__":
-    parser = OptionParser(usage="ai2Table  <-c|-g|-t|-sg> [--filter  <channel pattern>] [--when <date>] <file 1> [file 2] ... [file n] ", version="0.1.5", add_help_option=True)
+    parser = OptionParser(usage="ai2Table  <-c|-g|-t|-sg> [--filter  <channel pattern>] [--when <date>] <file 1> [file 2] ... [file n] ", version="0.1.8", add_help_option=True)
 
     ## Modes
     parser.add_option("-c", "--coordinates", action="store_true", help="Coordinates table", dest="c", default=False)
