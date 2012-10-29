@@ -26,13 +26,30 @@ from optparse import OptionParser
 
 try:
     from seiscomp.db.generic.inventory import Inventory as GInventory
-    from seiscomp import logs
+    from seiscomp.logs import *
 except:
     print >>sys.stderr, "Please use the install.sh script to adjust the seiscomp3 folder."
     sys.exit()
 
 from ai.utils import *
 import string
+
+def info(s):
+    print >>sys.stdout,s
+    sys.stdout.flush()
+
+def notice(s):
+    print >>sys.stderr,s
+    sys.stderr.flush()
+
+def debug(s):
+    print >>sys.stderr,s
+    sys.stderr.flush()
+
+def error(s):
+    print >>sys.stderr,s
+    sys.stderr.flush()
+
 
 class base(object):
     def __init__(self, pattern = None, when = None):
@@ -116,46 +133,73 @@ class coordinate(base):
 
             for (scode, sstart, sta) in unWrapNSLC(net.station):
                 if not self._match(self.name(ncode, scode), sta.start, sta.end): continue
-                logs.notice("[S] %-15s %f %f %f" % (self.name(ncode, scode), sta.longitude, sta.latitude, sta.elevation))
+                info("[S] %-15s %f %f %f" % (self.name(ncode, scode), sta.longitude, sta.latitude, sta.elevation))
 
                 for (lcode, lstart, loc) in unWrapNSLC(sta.sensorLocation):
                     if not self._match(self.name(ncode, scode, lcode), loc.start, loc.end): continue
                     if loc.longitude != sta.longitude or loc.latitude != sta.latitude or loc.elevation != sta.elevation:
-                        logs.notice("[L] %-15s %f %f %f" % (self.name(ncode, scode, lcode), loc.longitude, loc.latitude, loc.elevation))
+                        info("[L] %-15s %f %f %f" % (self.name(ncode, scode, lcode), loc.longitude, loc.latitude, loc.elevation))
 
 class tree(base):
-    def __init__(self, filter = None, when = None, mode = "Pretty"):
+    def __init__(self, filter = None, when = None, mode = "Pretty", extra = None):
         base.__init__(self, filter, when)
         if mode == "Pretty" or mode == "Diff":
             self.mode = mode
         else:
             raise Exception("Invalid Printing mode")
+        self.extra = extra
         
     def run(self, inv):
+        node = None
+        if self.extra:
+            (node, variable) = self.extra.split(".")
+
         for (ncode, nstart, net) in unWrapNSLC(inv.network):
             if not self._match(self.name(ncode), net.start, net.end): continue
+            if node == "n": value = getattr(net, variable)
             if self.mode == "Pretty":
-                logs.notice("%s,%s/%s" %(ncode,net.start, net.end))
+                info("%s,%s/%s" %(ncode,net.start, net.end))
+            else:
+                if node == "n":
+                    info("%s,%s/%s %s" % (ncode, net.start, net.end, value))
+                    continue
 
             for (scode, sstart, sta) in unWrapNSLC(net.station):
                 if not self._match(self.name(ncode, scode), sta.start, sta.end): continue
+                if node == "s": value = getattr(sta, variable)
                 if self.mode == "Pretty":
-                    logs.notice("  %s,%s/%s" % (scode,sta.start, sta.end))
+                    info("  %s,%s/%s" % (scode,sta.start, sta.end))
+                else:
+                    if node == "s":
+                        info("%s,%s/%s :: %s,%s/%s %s" % (ncode, net.start, net.end, scode,sta.start, sta.end, value))
+                        continue
     
                 for (lcode, lstart, loc) in unWrapNSLC(sta.sensorLocation):
                     if not self._match(self.name(ncode, scode, lcode), loc.start, loc.end): continue
+                    if node == "l": value = getattr(loc, variable)
                     if self.mode == "Pretty":
-                        logs.notice("       %s,%s/%s" % (lcode if lcode != "" else "--",loc.start, loc.end))
+                        info("       %s,%s/%s" % (lcode if lcode != "" else "--",loc.start, loc.end))
+                    else:
+                        if node == "l":
+                            info("%s,%s/%s :: %s,%s/%s :: %s,%s/%s %s" % (ncode, net.start, net.end, scode,sta.start, sta.end, lcode if lcode != "" else "--",loc.start, loc.end, value))
+                            continue
 
                     for (ccode, cstart, cha) in unWrapNSLC(loc.stream):
                         if not self._match(self.name(ncode, scode, lcode, ccode), cha.start, cha.end): continue
+                        if node == "c": value = getattr(cha, variable)
                         if self.mode == "Diff":
-                            logs.notice("%s,%s/%s :: %s,%s/%s :: %s,%s/%s :: %s,%s/%s" % (ncode,net.start, net.end,
-                                                               scode,sta.start, sta.end,
-                                                               lcode if lcode != "" else "--",loc.start, loc.end,
-                                                               ccode, cha.start, cha.end))
+                            if self.extra:
+                                info("%s,%s/%s :: %s,%s/%s :: %s,%s/%s :: %s,%s/%s %s" % (ncode,net.start, net.end,
+                                                                   scode,sta.start, sta.end,
+                                                                   lcode if lcode != "" else "--",loc.start, loc.end,
+                                                                   ccode, cha.start, cha.end, value))
+                            else:
+                                info("%s,%s/%s :: %s,%s/%s :: %s,%s/%s :: %s,%s/%s" % (ncode,net.start, net.end,
+                                                                   scode,sta.start, sta.end,
+                                                                   lcode if lcode != "" else "--",loc.start, loc.end,
+                                                                   ccode, cha.start, cha.end))
                         elif self.mode == "Pretty":
-                            logs.notice("         %s,%s/%s" % (ccode, cha.start, cha.end))
+                            info("         %s,%s/%s" % (ccode, cha.start, cha.end))
                         else:
                             raise Exception("Invalid printing mode.")
 
@@ -172,16 +216,16 @@ class gain(base):
                     if not self._match(self.name(ncode, scode, lcode), loc.start, loc.end): continue
                     for (ccode, cstart, cha) in unWrapNSLC(loc.stream):
                         if not self._match(self.name(ncode, scode, lcode, ccode), cha.start, cha.end): continue
-                        logs.notice("[C] %-15s %g" % (self.name(ncode, scode, lcode, ccode), cha.gain))
+                        info("[C] %-15s %g %s %s" % (self.name(ncode, scode, lcode, ccode), cha.gain, cstart, cha.end))
 
 def loadData(args):
     inv = GInventory()
     try:
         for filename in args:
-            logs.notice("Loading %s" % filename)
+            notice("Loading %s" % filename)
             load_xml(filename, inv)
     except Exception,e:
-        logs.error(str(e))
+        error(str(e))
     return inv
 
 if __name__ == "__main__":
@@ -196,13 +240,14 @@ if __name__ == "__main__":
     ## Options
     parser.add_option("-f", "--filter", type="string", help="String to filter the node elements [Network.Station.Location.Stream. Empty locations should be represented as '--', '*/?' are used as wildcards]", dest="filter", default=False)
     parser.add_option("-w", "--when", type="string", help="Time to extract the desired information iso format (2012-12-31T14:10:59)", dest="when", default=False)
+    parser.add_option("-e", "--extra", type="string", help="Extra variable to print in the Diff output Mode", dest="extra", default=None)
     parser.add_option("-m", "--mode", type="string", help="Default printing mode for tree output (Pretty, Diff)", dest="mode", default="Pretty")
 
     # Parsing & Error check
     (options, args) = parser.parse_args()
     
     if len(args) < 1:
-        logs.error("You should supply at least one file to check")
+        error("You should supply at least one file to check")
         sys.exit()
  
     filter = None
@@ -216,7 +261,7 @@ if __name__ == "__main__":
         try:
             when = datetime.datetime.strptime(options.when, "%Y-%m-%dT%H:%M:%S")
         except Exception,e:
-            logs.error(str(e))
+            error(str(e))
             sys.exit()
     
     try:
@@ -225,15 +270,18 @@ if __name__ == "__main__":
         elif options.g:
             module = gain(filter, when)
         elif options.t:
-            module = tree(filter, when, options.mode)
+            module = tree(filter, when, options.mode, options.extra)
         elif options.sg:
             raise Exception("Not yet implemented")
         else:
             raise Exception("No action specified")
     except Exception,e:
-        logs.error(str(e))
+        error(str(e))
         sys.exit()
 
     inv = loadData(args)
-    module.run(inv)
-
+    try:
+        module.run(inv)
+    except Exception,e:
+        print error("Error:")
+        print error(" %s" % e)
