@@ -161,7 +161,7 @@ class tree(base):
                 info("%s,%s/%s" %(ncode,net.start, net.end))
             else:
                 if node == "n":
-                    info("%s,%s/%s %s" % (ncode, net.start, net.end, value))
+                    info("%s,%s/%s %s %s" % (ncode, net.start, net.end, variable, value))
                     continue
 
             for (scode, sstart, sta) in unWrapNSLC(net.station):
@@ -171,7 +171,7 @@ class tree(base):
                     info("  %s,%s/%s" % (scode,sta.start, sta.end))
                 else:
                     if node == "s":
-                        info("%s,%s/%s :: %s,%s/%s %s" % (ncode, net.start, net.end, scode,sta.start, sta.end, value))
+                        info("%s,%s/%s :: %s,%s/%s %s %s" % (ncode, net.start, net.end, scode,sta.start, sta.end, variable, value))
                         continue
     
                 for (lcode, lstart, loc) in unWrapNSLC(sta.sensorLocation):
@@ -181,7 +181,7 @@ class tree(base):
                         info("       %s,%s/%s" % (lcode if lcode != "" else "--",loc.start, loc.end))
                     else:
                         if node == "l":
-                            info("%s,%s/%s :: %s,%s/%s :: %s,%s/%s %s" % (ncode, net.start, net.end, scode,sta.start, sta.end, lcode if lcode != "" else "--",loc.start, loc.end, value))
+                            info("%s,%s/%s :: %s,%s/%s :: %s,%s/%s %s %s" % (ncode, net.start, net.end, scode,sta.start, sta.end, lcode if lcode != "" else "--",loc.start, loc.end, variable, value))
                             continue
 
                     for (ccode, cstart, cha) in unWrapNSLC(loc.stream):
@@ -189,10 +189,10 @@ class tree(base):
                         if node == "c": value = getattr(cha, variable)
                         if self.mode == "Diff":
                             if self.extra:
-                                info("%s,%s/%s :: %s,%s/%s :: %s,%s/%s :: %s,%s/%s %s" % (ncode,net.start, net.end,
+                                info("%s,%s/%s :: %s,%s/%s :: %s,%s/%s :: %s,%s/%s %s %s" % (ncode,net.start, net.end,
                                                                    scode,sta.start, sta.end,
                                                                    lcode if lcode != "" else "--",loc.start, loc.end,
-                                                                   ccode, cha.start, cha.end, value))
+                                                                   ccode, cha.start, cha.end, variable, value))
                             else:
                                 info("%s,%s/%s :: %s,%s/%s :: %s,%s/%s :: %s,%s/%s" % (ncode,net.start, net.end,
                                                                    scode,sta.start, sta.end,
