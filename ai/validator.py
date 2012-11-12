@@ -229,16 +229,20 @@ class Validator(object):
         
         for (ncode, nstart, net) in unWrapNSLC(iv.network):
             if not ncode: self.collectNSLC(net, None, None, None, "[0] network has no code")
-            if not nstart: self.collectNSLC(net, None, None, None, "[0] network has no start time") 
+            if not nstart: self.collectNSLC(net, None, None, None, "[0] network has no start time")
+            if net.end and net.end < nstart: self.collectNSLC(net, None, None, None, "[0] network end is invalid") 
             for (scode, sstart, sta) in unWrapNSLC(net.station):
-                if not scode: self.collectNSLC(net, sta, None, None, "[0] Station has no code")
-                if not sstart: self.collectNSLC(net, sta, None, None, "[0] Station has no start time")
+                if not scode: self.collectNSLC(net, sta, None, None, "[0] station has no code")
+                if not sstart: self.collectNSLC(net, sta, None, None, "[0] station has no start time")
+                if sta.end and sta.end < sstart: self.collectNSLC(net, sta, None, None, "[0] station end is invalid") 
                 for (lcode, lstart, loc) in unWrapNSLC(sta.sensorLocation):
-                    if lcode is None: self.collectNSLC(net, sta, loc, None, "[0] Location has no code")
-                    if not lstart: self.collectNSLC(net, sta, loc, None, "[0] Location has no start time")
+                    if lcode is None: self.collectNSLC(net, sta, loc, None, "[0] location has no code")
+                    if not lstart: self.collectNSLC(net, sta, loc, None, "[0] location has no start time")
+                    if loc.end and loc.end < lstart: self.collectNSLC(net, sta, loc, None, "[0] location end is invalid") 
                     for (ccode, cstart, cha) in unWrapNSLC(loc.stream):
-                        if not ccode: self.collectNSLC(net, sta, loc, cha, "[0] Stream has no code")
-                        if not cstart: self.collectNSLC(net, sta, loc, cha, "[0] Stream has no start time")
+                        if not ccode: self.collectNSLC(net, sta, loc, cha, "[0] stream has no code")
+                        if not cstart: self.collectNSLC(net, sta, loc, cha, "[0] stream has no start time")
+                        if cha.end and cha.end < cstart: self.collectNSLC(net, sta, loc, cha, "[0] location end is invalid") 
 
         return
 
