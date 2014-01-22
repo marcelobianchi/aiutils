@@ -41,13 +41,13 @@ fixSc3() {
 		echo "Make sure that you have seiscomp3 installed at your home folder or link it from the"
 		echo "\${SEISCOMP_ROOT}/lib/python/seiscomp -> seiscomp on the aiUtils folder."
 		echo ""
-		echo "Or if you want, I could also download the necessary files for you."
+		echo "Or if you want, I could extract the supplied version (quite old)."
 		ans="Z"
 		while [ "$ans" != "N" -a "$ans" != "Y" ]; do
 			read -p "Should I do it [y/n]? " ans
 			ans=$(echo $ans | tr "[:lower:]" "[:upper:]" | cut -c1)
 			if [ "$ans" == "Y" ]; then
-				bzr branch lp:~m-tchelo/+junk/seiscomp
+				tar xzf seiscomp.tgz
 				return 0
 			fi
 		done

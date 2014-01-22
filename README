@@ -11,7 +11,7 @@ distribution
 ============
 
 The initial package was developed and is distributed by the launchpad
-webpage. The code can be fetched using the bazaar (http://bazaar.canonical.com/en/)
+webpage. The code could be fetched using the bazaar (http://bazaar.canonical.com/en/)
  application from the project page.
 
 Currently some revisions (more stable) of the code are also host at the GEOFON 
@@ -19,33 +19,32 @@ webpage and distributed as compressed volumes at:
 
 http://geofon.gfz-potsdam.de/software/aiutils/
 
-If you want to fetch the code from the launchpad project page (https://launchpad.net/aiutils) 
-you will need the bazaar tool. For getting a copy of the tool just use bazaar:
+and also, if you want to fetch the more up-to-date version of the code you can get it
+from the github project page (https://www.github.com/marcelobianchi/aiutils) you will
+need the git tool. For getting a copy of the tool just use git:
 
-% bzr branch lp:aiutils
+% git clone git@github.com:marcelobianchi/aiutils.git
 
 for updating your copy to the latest just do:
 
-% bzr pull
+% git pull
 
-
-about bzr
+about git
 =========
 
-Bazaar is s distributed version control system that does not need a server.
-It is included on major Linux distributions. Please use your distribution package
-manager to install it.
+Git is s distributed version control system. It is included on major Linux distributions. 
+Please use your distribution package manager to install it.
 
 opensuse:
-	zypper install bzr
+	zypper install git
 
 debian/ubuntu:
-	apt-get install bzr
+	apt-get install git
 
 install
 =======
 
-Installing and Updating the code to the last release can be done with the bazaar
+Installing and Updating the code to the last release can be done with the Git
 tool (see above) and the associated helper script.
 
 Change to a desired folder for installing it, i.e. /usr/local
@@ -54,7 +53,7 @@ Change to a desired folder for installing it, i.e. /usr/local
 
 Make a branch from our webserver
 
-% bzr branch lp:aiutils
+% git clone git@github.com:marcelobianchi/aiutils.git
 
 Enter the created folder
 
@@ -71,9 +70,9 @@ Go to the location where it was installed
 
 % cd /usr/local/aiUtils/
 
-Run bazaar asking to update your branch
+Run Git asking to update your branch
 
-% bzr pull
+% git pull
 
 Run the install script again
 
